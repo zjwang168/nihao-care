@@ -1,6 +1,34 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 import Link from 'next/link'
 
 export default function LandingPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (data?.role === 'provider') {
+        router.push('/provider-dashboard')
+      } else {
+        router.push('/dashboard')
+      }
+    }
+    checkAuth()
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
 

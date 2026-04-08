@@ -40,7 +40,6 @@ export default function ProviderDashboard() {
       if (profileData) {
         setProfile(profileData)
 
-        // Get unread messages count
         const { data: convs } = await supabase
           .from('conversations')
           .select('provider_unread')
@@ -82,7 +81,7 @@ export default function ProviderDashboard() {
           <span className="text-xs bg-[#C8372D] text-white px-2 py-0.5 rounded">你好</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/provider/messages" className="text-sm text-gray-600 hover:text-gray-900 relative">
+          <Link href="/provider-messages" className="text-sm text-gray-600 hover:text-gray-900 relative">
             Messages
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-3 w-4 h-4 bg-[#C8372D] text-white text-xs rounded-full flex items-center justify-center">
@@ -90,7 +89,7 @@ export default function ProviderDashboard() {
               </span>
             )}
           </Link>
-          <Link href="/provider/profile" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link href="/provider-profile" className="text-sm text-gray-600 hover:text-gray-900">
             My Profile
           </Link>
           <button onClick={handleSignOut}
@@ -112,7 +111,7 @@ export default function ProviderDashboard() {
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <Link href="/provider/messages"
+          <Link href="/provider-messages"
             className="bg-[#C8372D] text-white rounded-2xl p-6 hover:bg-[#E85045] transition-colors relative">
             <div className="text-3xl mb-3">💬</div>
             <div className="font-semibold text-lg">Messages</div>
@@ -126,7 +125,7 @@ export default function ProviderDashboard() {
             )}
           </Link>
 
-          <Link href="/provider/profile"
+          <Link href="/provider-profile"
             className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow">
             <div className="text-3xl mb-3">👤</div>
             <div className="font-semibold text-lg text-gray-900">My Profile</div>
@@ -139,7 +138,7 @@ export default function ProviderDashboard() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
             <div className="flex justify-between items-start mb-4">
               <h2 className="font-semibold text-gray-900">Your Profile</h2>
-              <Link href="/provider/profile"
+              <Link href="/provider-profile"
                 className="text-sm text-[#C8372D] hover:underline">
                 Edit →
               </Link>
@@ -180,7 +179,7 @@ export default function ProviderDashboard() {
                 Verified caregivers appear higher in search results and get 3x more inquiries.
                 Background check starts at $35.
               </div>
-              <Link href="/provider/certifications"
+              <Link href="/provider-certifications"
                 className="inline-block px-4 py-2 bg-amber-500 text-white text-sm rounded-xl hover:bg-amber-600 transition-colors font-medium">
                 Get Certified →
               </Link>
