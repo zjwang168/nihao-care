@@ -19,16 +19,28 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      setError(signInError.message)
       setLoading(false)
       return
     }
 
-    router.push('/dashboard')
+    // Check role and redirect accordingly
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', authData.user?.id ?? '')
+      .single()
+
     router.refresh()
+
+    if (userData?.role === 'provider') {
+      router.push('/provider-dashboard')
+    } else {
+      router.push('/dashboard')
+    }
   }
 
   return (
