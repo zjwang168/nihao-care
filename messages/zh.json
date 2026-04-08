@@ -1,0 +1,40 @@
+{
+    "nav": {
+      "find_care": "找服务",
+      "for_caregivers": "我是服务者",
+      "how_it_works": "如何使用",
+      "login": "登录",
+      "signup": "免费注册"
+    },
+    "hero": {
+      "tag": "现已服务 DC · 马里兰 · 弗吉尼亚",
+      "title": "找到说你家语言的照护者",
+      "subtitle": "你好Care连接家庭与中文Nanny、家教和生活助手。",
+      "cta_family": "寻找服务者",
+      "cta_provider": "我是服务者"
+    },
+    "auth": {
+      "login_title": "欢迎回来",
+      "register_title": "创建账号",
+      "email": "邮箱地址",
+      "password": "密码",
+      "login_btn": "登录",
+      "register_btn": "注册",
+      "no_account": "还没有账号？",
+      "have_account": "已有账号？",
+      "role_question": "我是...",
+      "role_family": "寻找服务的家庭",
+      "role_provider": "寻找工作的服务者",
+      "role_both": "两者都是"
+    },
+    "common": {
+      "loading": "加载中...",
+      "error": "出了点问题",
+      "save": "保存",
+      "cancel": "取消",
+      "back": "返回",
+      "next": "下一步",
+      "done": "完成",
+      "or": "或"
+    }
+  }

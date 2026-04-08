@@ -1,0 +1,40 @@
+{
+    "nav": {
+      "find_care": "Find Care",
+      "for_caregivers": "For Caregivers",
+      "how_it_works": "How It Works",
+      "login": "Log In",
+      "signup": "Get Started"
+    },
+    "hero": {
+      "tag": "Now in DC · Maryland · Virginia",
+      "title": "Find a caregiver who speaks your family's language",
+      "subtitle": "NiHao Care connects families with Mandarin-speaking nannies, tutors, and household helpers.",
+      "cta_family": "Find a Caregiver",
+      "cta_provider": "I'm a Caregiver"
+    },
+    "auth": {
+      "login_title": "Welcome back",
+      "register_title": "Create your account",
+      "email": "Email address",
+      "password": "Password",
+      "login_btn": "Log In",
+      "register_btn": "Create Account",
+      "no_account": "Don't have an account?",
+      "have_account": "Already have an account?",
+      "role_question": "I am a...",
+      "role_family": "Family looking for care",
+      "role_provider": "Caregiver looking for work",
+      "role_both": "Both"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Something went wrong",
+      "save": "Save",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next",
+      "done": "Done",
+      "or": "or"
+    }
+  }
