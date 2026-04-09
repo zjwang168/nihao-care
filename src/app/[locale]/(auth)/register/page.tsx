@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
-type Role = 'family' | 'provider' | 'both'
+type Role = 'family' | 'provider'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -26,21 +26,13 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      })
+      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password })
       if (authError) throw authError
       if (!authData.user) throw new Error('No user returned')
 
       const { error: userError } = await supabase
         .from('users')
-        .insert({
-          id: authData.user.id,
-          email,
-          role,
-          preferred_lang: 'en',
-        })
+        .insert({ id: authData.user.id, email, role, preferred_lang: 'en' })
       if (userError) throw userError
 
       router.push('/onboarding')
@@ -112,7 +104,6 @@ export default function RegisterPage() {
                 {[
                   { value: 'family', label: 'Family looking for care', emoji: '🏠', desc: 'Find nannies, tutors, and helpers' },
                   { value: 'provider', label: 'Caregiver looking for work', emoji: '👩‍👧', desc: 'Connect with families who need you' },
-                  { value: 'both', label: 'Both', emoji: '🔄', desc: 'I need care and also provide care' },
                 ].map(option => (
                   <button
                     key={option.value} type="button"

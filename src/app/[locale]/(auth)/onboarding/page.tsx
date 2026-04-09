@@ -10,7 +10,7 @@ export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [role, setRole] = useState<'family' | 'provider' | 'both' | null>(null)
+  const [role, setRole] = useState<'family' | 'provider' | null>(null)
   const [step, setStep] = useState<Step>('family_info')
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState('')
@@ -76,7 +76,7 @@ export default function OnboardingPage() {
     })
 
     if (error) { console.error(error); setLoading(false); return }
-    if (role === 'both') { setStep('provider_info') } else { router.push('/dashboard') }
+    router.push('/dashboard')
     setLoading(false)
   }
 
@@ -99,7 +99,7 @@ export default function OnboardingPage() {
     })
 
     if (error) { console.error(error); setLoading(false); return }
-    router.push('/provider-dashboard')  // ← 这里改了
+    router.push('/provider-dashboard')
     setLoading(false)
   }
 
@@ -194,7 +194,7 @@ export default function OnboardingPage() {
 
                 <button type="submit" disabled={loading}
                   className="w-full py-3 bg-[#C8372D] hover:bg-[#E85045] text-white font-medium rounded-xl transition-colors disabled:opacity-50">
-                  {loading ? 'Saving...' : role === 'both' ? 'Next: Caregiver Profile →' : 'Complete Setup →'}
+                  {loading ? 'Saving...' : 'Complete Setup →'}
                 </button>
               </form>
             </>
