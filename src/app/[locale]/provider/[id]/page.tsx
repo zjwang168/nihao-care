@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
@@ -19,7 +19,6 @@ type Provider = {
   has_drivers_license: boolean
   years_experience: number
   cooking_styles: string[]
-  work_auth: string
 }
 
 const SERVICE_LABELS: Record<string, string> = {
@@ -32,13 +31,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
   es: '🇪🇸 Spanish', ko: '🇰🇷 Korean',
 }
 
-const WORK_AUTH_LABELS: Record<string, string> = {
-  citizen: 'US Citizen', green_card: 'Green Card',
-  opt: 'OPT / STEM OPT', ead: 'EAD', other: 'Other',
-}
-
 export default function ProviderProfilePage() {
-  const router = useRouter()
   const params = useParams()
   const supabase = createClient()
   const [provider, setProvider] = useState<Provider | null>(null)
@@ -83,7 +76,6 @@ export default function ProviderProfilePage() {
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
 
-      {/* Navbar */}
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-900">NiHao Care</span>
@@ -96,7 +88,6 @@ export default function ProviderProfilePage() {
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 
-        {/* Profile header */}
         <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6">
           <div className="flex items-start gap-6">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
@@ -123,7 +114,6 @@ export default function ProviderProfilePage() {
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="mt-6 flex gap-3">
             {isLoggedIn ? (
               <Link href={`/messages?provider=${provider.id}`}
@@ -143,7 +133,6 @@ export default function ProviderProfilePage() {
           </div>
         </div>
 
-        {/* About */}
         {provider.bio && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
             <h2 className="font-semibold text-gray-900 mb-3">About</h2>
@@ -151,7 +140,6 @@ export default function ProviderProfilePage() {
           </div>
         )}
 
-        {/* Details */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Details</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -187,16 +175,6 @@ export default function ProviderProfilePage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📋</span>
-              <div>
-                <div className="text-xs text-gray-400">Work Authorization</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {WORK_AUTH_LABELS[provider.work_auth] || provider.work_auth}
-                </div>
-              </div>
-            </div>
-
             {provider.cooking_styles?.length > 0 && (
               <div className="flex items-center gap-3 col-span-2">
                 <span className="text-xl">🍳</span>
@@ -211,7 +189,6 @@ export default function ProviderProfilePage() {
           </div>
         </div>
 
-        {/* CTA for non-logged in */}
         {!isLoggedIn && (
           <div className="bg-[#C8372D] rounded-2xl p-6 text-center text-white">
             <div className="text-lg font-semibold mb-2">

@@ -1,274 +1,210 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase'
 
-export default function LandingPage() {
+type Provider = {
+  id: string
+  display_name: string
+  bio: string
+  service_types: string[]
+  languages: string[]
+  hourly_rate_min: number
+  hourly_rate_max: number
+  location_city: string
+  location_state: string
+  has_car: boolean
+  has_drivers_license: boolean
+  years_experience: number
+  cooking_styles: string[]
+}
+
+const SERVICE_LABELS: Record<string, string> = {
+  nanny: '👧 Nanny', babysitter: '🍼 Babysitter',
+  tutor: '📚 Tutor', cook: '🍳 Cook', ayi: '🏠 阿姨',
+}
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  zh: '🇨🇳 Mandarin', en: '🇺🇸 English',
+  es: '🇪🇸 Spanish', ko: '🇰🇷 Korean',
+}
+
+export default function ProviderProfilePage() {
   const router = useRouter()
+  const params = useParams()
   const supabase = createClient()
+  const [provider, setProvider] = useState<Provider | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    async function checkAuth() {
+    async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      setIsLoggedIn(!!user)
 
       const { data } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
+        .from('provider_profiles')
+        .select('*')
+        .eq('id', params.id)
         .single()
 
-      if (data?.role === 'provider') {
-        router.push('/provider-dashboard')
-      } else {
-        router.push('/dashboard')
-      }
+      if (data) setProvider(data)
+      setLoading(false)
     }
-    checkAuth()
-  }, [])
+    load()
+  }, [params.id])
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <div className="animate-spin w-6 h-6 border-2 border-[#C8372D] border-t-transparent rounded-full"/>
+    </div>
+  )
+
+  if (!provider) return (
+    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl mb-4">😕</div>
+        <div className="text-gray-500">Profile not found</div>
+        <Link href="/search" className="mt-4 inline-block text-[#C8372D] hover:underline">
+          ← Back to search
+        </Link>
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
 
-      {/* Nav */}
-      <nav className="px-6 py-5 flex justify-between items-center max-w-6xl mx-auto">
-        <div className="flex items-center gap-2">
+      <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-900">NiHao Care</span>
           <span className="text-xs bg-[#C8372D] text-white px-2 py-0.5 rounded">你好</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
-            Log In
-          </Link>
-          <Link href="/register"
-            className="text-sm bg-[#C8372D] text-white px-4 py-2 rounded-full hover:bg-[#E85045] transition-colors">
-            Get Started
-          </Link>
-        </div>
+        </Link>
+        <Link href="/search" className="text-sm text-gray-500 hover:text-gray-900">
+          ← Back to search
+        </Link>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 text-sm text-gray-500 mb-8 shadow-sm">
-            <span className="w-2 h-2 bg-[#C8372D] rounded-full animate-pulse"/>
-            Now serving DC · Maryland · Virginia
-          </div>
+      <div className="max-w-3xl mx-auto px-6 py-10">
 
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
-            Find a caregiver who speaks your{' '}
-            <span className="text-[#C8372D]">family&apos;s language</span>
-          </h1>
-
-          <p className="text-xl text-gray-500 mb-10 leading-relaxed">
-            NiHao Care connects families with Mandarin-speaking nannies, tutors,
-            and household helpers — vetted, certified, and matched by culture.
-          </p>
-
-          <div className="flex flex-wrap gap-4">
-            <Link href="/register?role=family"
-              className="px-8 py-4 bg-[#C8372D] text-white font-medium rounded-full hover:bg-[#E85045] transition-all shadow-lg shadow-red-200 hover:shadow-xl hover:-translate-y-0.5">
-              Find a Caregiver →
-            </Link>
-            <Link href="/register?role=provider"
-              className="px-8 py-4 bg-white text-gray-900 font-medium rounded-full hover:shadow-md transition-all border border-gray-200">
-              I&apos;m a Caregiver
-            </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-10 mt-14 pt-10 border-t border-gray-200">
-            {[
-              { value: '中英', label: 'Bilingual platform' },
-              { value: '免费', label: 'Free to join' },
-              { value: 'DC', label: 'Launching first' },
-            ].map(stat => (
-              <div key={stat.label}>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-sm text-gray-500 mt-0.5">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="max-w-6xl mx-auto px-6 py-16 border-t border-gray-200">
-        <div className="text-xs font-semibold tracking-widest text-[#C8372D] uppercase mb-3">
-          How it works
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-12">
-          Simple, from search to first day
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              step: '01',
-              title: 'Tell us what you need',
-              desc: 'Share your family\'s language goals, schedule, and care preferences.',
-              icon: '📋'
-            },
-            {
-              step: '02',
-              title: 'Browse certified caregivers',
-              desc: 'Filter by language, service type, location, and availability.',
-              icon: '🔍'
-            },
-            {
-              step: '03',
-              title: 'Connect & find your match',
-              desc: 'Message directly, schedule an interview, and start your care journey.',
-              icon: '💬'
-            },
-          ].map(item => (
-            <div key={item.step} className="bg-white rounded-2xl p-6 border border-gray-100 relative overflow-hidden">
-              <div className="absolute top-4 right-4 text-6xl font-black text-gray-50">
-                {item.step}
-              </div>
-              <div className="text-3xl mb-4">{item.icon}</div>
-              <div className="font-semibold text-gray-900 mb-2">{item.title}</div>
-              <div className="text-gray-500 text-sm leading-relaxed">{item.desc}</div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6">
+          <div className="flex items-start gap-6">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
+              {provider.display_name.charAt(0)}
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* For who */}
-      <section className="bg-gray-900 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-3">
-            Who it&apos;s for
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {provider.display_name}
+              </h1>
+              <div className="text-gray-500 mb-3">
+                📍 {provider.location_city}, {provider.location_state}
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {provider.service_types.map(s => (
+                  <span key={s} className="text-sm px-3 py-1 bg-red-50 text-[#C8372D] rounded-full">
+                    {SERVICE_LABELS[s] || s}
+                  </span>
+                ))}
+              </div>
+              <div className="text-2xl font-bold text-gray-900">
+                ${provider.hourly_rate_min}–${provider.hourly_rate_max}
+                <span className="text-sm font-normal text-gray-400">/hr</span>
+              </div>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-10">
-            Built for two sides of the same family
-          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              {
-                emoji: '🏠',
-                role: 'For Families',
-                title: 'Find your perfect match',
-                items: [
-                  'Chinese-American families wanting Mandarin immersion',
-                  'American families raising bilingual children',
-                  'Busy families needing trusted home help',
-                  'Families seeking culturally connected care',
-                ]
-              },
-              {
-                emoji: '👩‍👧',
-                role: 'For Caregivers',
-                title: 'Find families who value you',
-                items: [
-                  'Mandarin-speaking nannies & tutors',
-                  'Chinese cooking & household helpers',
-                  'Experienced 阿姨 in your community',
-                  'Anyone who wants to share their culture',
-                ]
-              }
-            ].map(card => (
-              <div key={card.role}
-                className="border border-gray-700 rounded-2xl p-8 hover:border-gray-500 transition-colors">
-                <div className="text-3xl mb-4">{card.emoji}</div>
-                <div className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-2">
-                  {card.role}
+          <div className="mt-6 flex gap-3">
+            {isLoggedIn ? (
+              <Link href={`/messages?provider=${provider.id}`}
+                className="flex-1 text-center py-3 bg-[#C8372D] text-white font-medium rounded-xl hover:bg-[#E85045] transition-colors">
+                💬 Send Message
+              </Link>
+            ) : (
+              <Link href="/register"
+                className="flex-1 text-center py-3 bg-[#C8372D] text-white font-medium rounded-xl hover:bg-[#E85045] transition-colors">
+                Sign up to message
+              </Link>
+            )}
+            <Link href="/search"
+              className="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 transition-colors">
+              ← Search
+            </Link>
+          </div>
+        </div>
+
+        {provider.bio && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+            <h2 className="font-semibold text-gray-900 mb-3">About</h2>
+            <p className="text-gray-600 leading-relaxed">{provider.bio}</p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Details</h2>
+          <div className="grid grid-cols-2 gap-4">
+
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🗣️</span>
+              <div>
+                <div className="text-xs text-gray-400">Languages</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {provider.languages.map(l => LANGUAGE_LABELS[l] || l).join(' · ')}
                 </div>
-                <div className="text-xl font-bold text-white mb-6">{card.title}</div>
-                <ul className="space-y-3">
-                  {card.items.map(item => (
-                    <li key={item} className="flex items-start gap-3 text-gray-400 text-sm">
-                      <span className="text-[#C8372D] mt-0.5">→</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="text-xs font-semibold tracking-widest text-[#C8372D] uppercase mb-3">
-          Why NiHao Care
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-10">
-          Trust built in, not bolted on
-        </h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: '🛡️', title: 'Background Checks', desc: 'Optional but visible. Verified caregivers get a prominent badge families can trust.' },
-            { icon: '🗣️', title: 'Language Verified', desc: 'We verify Mandarin proficiency — no more guessing from a profile.' },
-            { icon: '⭐', title: 'Two-Way Reviews', desc: 'Families review caregivers and caregivers review families.' },
-            { icon: '🔒', title: 'Privacy First', desc: 'Caregivers control their visibility. Photos revealed only when ready.' },
-          ].map(item => (
-            <div key={item.title}
-              className="bg-white rounded-2xl p-5 border border-gray-100 hover:-translate-y-1 transition-transform">
-              <div className="text-2xl mb-3">{item.icon}</div>
-              <div className="font-semibold text-gray-900 text-sm mb-1">{item.title}</div>
-              <div className="text-gray-500 text-xs leading-relaxed">{item.desc}</div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="bg-[#C8372D] py-16 px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-xs font-semibold tracking-widest text-red-200 uppercase mb-3">
-            Early Access
+            <div className="flex items-center gap-3">
+              <span className="text-xl">⏱️</span>
+              <div>
+                <div className="text-xs text-gray-400">Experience</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {provider.years_experience} years
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🚗</span>
+              <div>
+                <div className="text-xs text-gray-400">Transportation</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {provider.has_car ? 'Has own car' : 'No car'}
+                  {provider.has_drivers_license ? ' · Licensed' : ''}
+                </div>
+              </div>
+            </div>
+
+            {provider.cooking_styles?.length > 0 && (
+              <div className="flex items-center gap-3 col-span-2">
+                <span className="text-xl">🍳</span>
+                <div>
+                  <div className="text-xs text-gray-400">Cooking styles</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {provider.cooking_styles.join(' · ')}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Be the first in DC to find your match
-          </h2>
-          <p className="text-red-100 mb-8">
-            We&apos;re launching in the DC-Maryland-Virginia area.
-            Join free and get early access today.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+        </div>
+
+        {!isLoggedIn && (
+          <div className="bg-[#C8372D] rounded-2xl p-6 text-center text-white">
+            <div className="text-lg font-semibold mb-2">
+              Interested in {provider.display_name}?
+            </div>
+            <div className="text-red-100 text-sm mb-4">
+              Sign up free to send a message and connect
+            </div>
             <Link href="/register"
-              className="px-8 py-4 bg-white text-[#C8372D] font-semibold rounded-full hover:shadow-lg transition-all">
+              className="inline-block px-6 py-2.5 bg-white text-[#C8372D] font-semibold rounded-full hover:shadow-lg transition-all">
               Join Free →
             </Link>
-            <Link href="/register?role=provider"
-              className="px-8 py-4 border-2 border-white/50 text-white font-medium rounded-full hover:border-white transition-colors">
-              Join as Caregiver
-            </Link>
           </div>
-
-          <div className="flex gap-8 justify-center mt-10">
-            {[
-              { value: '免费', label: 'Free to join' },
-              { value: '中英', label: 'Bilingual' },
-              { value: '安心', label: 'Peace of mind' },
-            ].map(stat => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <div className="text-xs text-red-200 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-8 border-t border-gray-200 flex justify-between items-center max-w-6xl mx-auto flex-wrap gap-4">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900">NiHao Care</span>
-          <span className="text-xs bg-[#C8372D] text-white px-2 py-0.5 rounded">你好</span>
-        </div>
-        <div className="text-sm text-gray-400">
-          © 2025 NiHao Care · Washington DC · 你好，我们在这里
-        </div>
-        <div className="text-sm text-gray-400">Made with ❤️ for bilingual families</div>
-      </footer>
-
+        )}
+      </div>
     </div>
   )
 }
