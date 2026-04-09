@@ -15,7 +15,6 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState('')
 
-  // Family fields
   const [familyName, setFamilyName] = useState('')
   const [city, setCity] = useState('')
   const [state, setState] = useState('MD')
@@ -24,7 +23,6 @@ export default function OnboardingPage() {
   const [needsDriving, setNeedsDriving] = useState(false)
   const [needsCooking, setNeedsCooking] = useState(false)
 
-  // Provider fields
   const [displayName, setDisplayName] = useState('')
   const [providerCity, setProviderCity] = useState('')
   const [providerState, setProviderState] = useState('MD')
@@ -101,7 +99,7 @@ export default function OnboardingPage() {
     })
 
     if (error) { console.error(error); setLoading(false); return }
-    router.push('/dashboard')
+    router.push('/provider-dashboard')  // ← 这里改了
     setLoading(false)
   }
 
