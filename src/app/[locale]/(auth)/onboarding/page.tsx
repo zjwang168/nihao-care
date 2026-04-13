@@ -6,6 +6,21 @@ import { createClient } from '@/lib/supabase'
 
 type Step = 'family_info' | 'provider_info'
 
+// Zip code lookup function
+async function lookupZipCode(zip: string): Promise<{ city: string; state: string } | null> {
+  try {
+    const res = await fetch(`https://api.zippopotam.us/us/${zip}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return {
+      city: data.places[0]['place name'],
+      state: data.places[0]['state abbreviation'],
+    }
+  } catch {
+    return null
+  }
+}
+
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -15,17 +30,26 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState('')
 
+  // Family fields
   const [familyName, setFamilyName] = useState('')
-  const [city, setCity] = useState('')
-  const [state, setState] = useState('MD')
+  const [familyZip, setFamilyZip] = useState('')
+  const [familyCity, setFamilyCity] = useState('')
+  const [familyState, setFamilyState] = useState('')
+  const [familyZipLoading, setFamilyZipLoading] = useState(false)
+  const [familyZipError, setFamilyZipError] = useState('')
   const [childrenAges, setChildrenAges] = useState('')
   const [languageGoals, setLanguageGoals] = useState<string[]>(['zh'])
   const [needsDriving, setNeedsDriving] = useState(false)
   const [needsCooking, setNeedsCooking] = useState(false)
 
+  // Provider fields
   const [displayName, setDisplayName] = useState('')
+  const [providerZip, setProviderZip] = useState('')
   const [providerCity, setProviderCity] = useState('')
-  const [providerState, setProviderState] = useState('MD')
+  const [providerState, setProviderState] = useState('')
+  const [providerZipLoading, setProviderZipLoading] = useState(false)
+  const [providerZipError, setProviderZipError] = useState('')
+  const [serviceRadius, setServiceRadius] = useState('10')
   const [serviceTypes, setServiceTypes] = useState<string[]>([])
   const [languages, setLanguages] = useState<string[]>(['zh'])
   const [hourlyRateMin, setHourlyRateMin] = useState('18')
@@ -54,12 +78,55 @@ export default function OnboardingPage() {
     loadUser()
   }, [])
 
+  async function handleFamilyZipChange(zip: string) {
+    setFamilyZip(zip)
+    setFamilyZipError('')
+    if (zip.length === 5) {
+      setFamilyZipLoading(true)
+      const result = await lookupZipCode(zip)
+      if (result) {
+        setFamilyCity(result.city)
+        setFamilyState(result.state)
+      } else {
+        setFamilyZipError('Invalid zip code')
+        setFamilyCity('')
+        setFamilyState('')
+      }
+      setFamilyZipLoading(false)
+    } else {
+      setFamilyCity('')
+      setFamilyState('')
+    }
+  }
+
+  async function handleProviderZipChange(zip: string) {
+    setProviderZip(zip)
+    setProviderZipError('')
+    if (zip.length === 5) {
+      setProviderZipLoading(true)
+      const result = await lookupZipCode(zip)
+      if (result) {
+        setProviderCity(result.city)
+        setProviderState(result.state)
+      } else {
+        setProviderZipError('Invalid zip code')
+        setProviderCity('')
+        setProviderState('')
+      }
+      setProviderZipLoading(false)
+    } else {
+      setProviderCity('')
+      setProviderState('')
+    }
+  }
+
   function toggleItem(arr: string[], item: string, setter: (v: string[]) => void) {
     setter(arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item])
   }
 
   async function handleFamilySubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!familyCity) { setFamilyZipError('Please enter a valid zip code'); return }
     setLoading(true)
 
     const ages = childrenAges.split(',').map(a => parseInt(a.trim())).filter(n => !isNaN(n))
@@ -67,8 +134,9 @@ export default function OnboardingPage() {
     const { error } = await supabase.from('family_profiles').insert({
       user_id: userId,
       family_name: familyName,
-      location_city: city,
-      location_state: state,
+      zip_code: familyZip,
+      location_city: familyCity,
+      location_state: familyState,
       children_ages: ages,
       language_goals: languageGoals,
       needs_driving: needsDriving,
@@ -82,13 +150,16 @@ export default function OnboardingPage() {
 
   async function handleProviderSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!providerCity) { setProviderZipError('Please enter a valid zip code'); return }
     setLoading(true)
 
     const { error } = await supabase.from('provider_profiles').insert({
       user_id: userId,
       display_name: displayName,
+      zip_code: providerZip,
       location_city: providerCity,
       location_state: providerState,
+      service_radius_miles: parseInt(serviceRadius),
       service_types: serviceTypes,
       languages,
       hourly_rate_min: parseFloat(hourlyRateMin),
@@ -102,8 +173,6 @@ export default function OnboardingPage() {
     router.push('/provider-dashboard')
     setLoading(false)
   }
-
-  const US_STATES = ['MD', 'VA', 'DC', 'NY', 'CA', 'TX', 'WA', 'IL', 'MA', 'GA']
 
   if (!role) return (
     <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
@@ -134,20 +203,27 @@ export default function OnboardingPage() {
                     placeholder="e.g. The Chen Family"/>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <input required value={city} onChange={e => setCity(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900"
-                      placeholder="Rockville"/>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+                  <div className="relative">
+                    <input
+                      required
+                      value={familyZip}
+                      onChange={e => handleFamilyZipChange(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 ${
+                        familyZipError ? 'border-red-300' : 'border-gray-200'
+                      }`}
+                      placeholder="e.g. 20850"/>
+                    {familyZipLoading && (
+                      <div className="absolute right-3 top-3.5">
+                        <div className="animate-spin w-4 h-4 border-2 border-[#C8372D] border-t-transparent rounded-full"/>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                    <select value={state} onChange={e => setState(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900">
-                      {US_STATES.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                  </div>
+                  {familyZipError && <p className="text-red-500 text-xs mt-1">{familyZipError}</p>}
+                  {familyCity && (
+                    <p className="text-green-600 text-xs mt-1">✓ {familyCity}, {familyState}</p>
+                  )}
                 </div>
 
                 <div>
@@ -211,19 +287,45 @@ export default function OnboardingPage() {
                     placeholder="e.g. Li Wei or Ms. Wang"/>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <input required value={providerCity} onChange={e => setProviderCity(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900"
-                      placeholder="Rockville"/>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+                  <div className="relative">
+                    <input
+                      required
+                      value={providerZip}
+                      onChange={e => handleProviderZipChange(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 ${
+                        providerZipError ? 'border-red-300' : 'border-gray-200'
+                      }`}
+                      placeholder="e.g. 20850"/>
+                    {providerZipLoading && (
+                      <div className="absolute right-3 top-3.5">
+                        <div className="animate-spin w-4 h-4 border-2 border-[#C8372D] border-t-transparent rounded-full"/>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                    <select value={providerState} onChange={e => setProviderState(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900">
-                      {US_STATES.map(s => <option key={s}>{s}</option>)}
-                    </select>
+                  {providerZipError && <p className="text-red-500 text-xs mt-1">{providerZipError}</p>}
+                  {providerCity && (
+                    <p className="text-green-600 text-xs mt-1">✓ {providerCity}, {providerState}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Service radius — how far can you travel?
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['5', '10', '15', '20', '30'].map(miles => (
+                      <button key={miles} type="button"
+                        onClick={() => setServiceRadius(miles)}
+                        className={`px-4 py-2 rounded-full text-sm border transition-all ${
+                          serviceRadius === miles
+                            ? 'bg-[#C8372D] text-white border-[#C8372D]'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}>
+                        {miles} mi
+                      </button>
+                    ))}
                   </div>
                 </div>
 
