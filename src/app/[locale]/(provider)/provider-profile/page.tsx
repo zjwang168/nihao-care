@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import LanguagePicker from '@/components/LanguagePicker'
 
 async function lookupZipCode(zip: string): Promise<{ city: string; state: string } | null> {
   try {
@@ -259,27 +260,11 @@ export default function ProviderProfileEditPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Languages spoken</label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { value: 'zh', label: '🇨🇳 Mandarin' },
-                  { value: 'en', label: '🇺🇸 English' },
-                  { value: 'es', label: '🇪🇸 Spanish' },
-                  { value: 'ko', label: '🇰🇷 Korean' },
-                ].map(lang => (
-                  <button key={lang.value} type="button"
-                    onClick={() => toggleItem(languages, lang.value, setLanguages)}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                      languages.includes(lang.value)
-                        ? 'bg-[#C8372D] text-white border-[#C8372D]'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}>
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <LanguagePicker
+              selected={languages}
+              onChange={setLanguages}
+              label="Languages spoken"
+            />
 
             {serviceTypes.includes('cook') && (
               <div>

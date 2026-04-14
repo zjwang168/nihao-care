@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import LanguagePicker from '@/components/LanguagePicker'
 
 type Step = 'family_info' | 'provider_info'
 
-// Zip code lookup function
 async function lookupZipCode(zip: string): Promise<{ city: string; state: string } | null> {
   try {
     const res = await fetch(`https://api.zippopotam.us/us/${zip}`)
@@ -30,7 +30,6 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState('')
 
-  // Family fields
   const [familyName, setFamilyName] = useState('')
   const [familyZip, setFamilyZip] = useState('')
   const [familyCity, setFamilyCity] = useState('')
@@ -42,7 +41,6 @@ export default function OnboardingPage() {
   const [needsDriving, setNeedsDriving] = useState(false)
   const [needsCooking, setNeedsCooking] = useState(false)
 
-  // Provider fields
   const [displayName, setDisplayName] = useState('')
   const [providerZip, setProviderZip] = useState('')
   const [providerCity, setProviderCity] = useState('')
@@ -206,9 +204,7 @@ export default function OnboardingPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
                   <div className="relative">
-                    <input
-                      required
-                      value={familyZip}
+                    <input required value={familyZip}
                       onChange={e => handleFamilyZipChange(e.target.value.replace(/\D/g, '').slice(0, 5))}
                       className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 ${
                         familyZipError ? 'border-red-300' : 'border-gray-200'
@@ -221,9 +217,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
                   {familyZipError && <p className="text-red-500 text-xs mt-1">{familyZipError}</p>}
-                  {familyCity && (
-                    <p className="text-green-600 text-xs mt-1">✓ {familyCity}, {familyState}</p>
-                  )}
+                  {familyCity && <p className="text-green-600 text-xs mt-1">✓ {familyCity}, {familyState}</p>}
                 </div>
 
                 <div>
@@ -233,27 +227,11 @@ export default function OnboardingPage() {
                     placeholder="e.g. 2, 5, 8"/>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Language goals</label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: 'zh', label: '🇨🇳 Mandarin' },
-                      { value: 'en', label: '🇺🇸 English' },
-                      { value: 'es', label: '🇪🇸 Spanish' },
-                      { value: 'ko', label: '🇰🇷 Korean' },
-                    ].map(lang => (
-                      <button key={lang.value} type="button"
-                        onClick={() => toggleItem(languageGoals, lang.value, setLanguageGoals)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                          languageGoals.includes(lang.value)
-                            ? 'bg-[#C8372D] text-white border-[#C8372D]'
-                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                        }`}>
-                        {lang.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <LanguagePicker
+                  selected={languageGoals}
+                  onChange={setLanguageGoals}
+                  label="Language goals"
+                />
 
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -290,9 +268,7 @@ export default function OnboardingPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
                   <div className="relative">
-                    <input
-                      required
-                      value={providerZip}
+                    <input required value={providerZip}
                       onChange={e => handleProviderZipChange(e.target.value.replace(/\D/g, '').slice(0, 5))}
                       className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 ${
                         providerZipError ? 'border-red-300' : 'border-gray-200'
@@ -305,9 +281,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
                   {providerZipError && <p className="text-red-500 text-xs mt-1">{providerZipError}</p>}
-                  {providerCity && (
-                    <p className="text-green-600 text-xs mt-1">✓ {providerCity}, {providerState}</p>
-                  )}
+                  {providerCity && <p className="text-green-600 text-xs mt-1">✓ {providerCity}, {providerState}</p>}
                 </div>
 
                 <div>
@@ -352,27 +326,11 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Languages spoken</label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: 'zh', label: '🇨🇳 Mandarin' },
-                      { value: 'en', label: '🇺🇸 English' },
-                      { value: 'es', label: '🇪🇸 Spanish' },
-                      { value: 'ko', label: '🇰🇷 Korean' },
-                    ].map(lang => (
-                      <button key={lang.value} type="button"
-                        onClick={() => toggleItem(languages, lang.value, setLanguages)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                          languages.includes(lang.value)
-                            ? 'bg-[#C8372D] text-white border-[#C8372D]'
-                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                        }`}>
-                        {lang.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <LanguagePicker
+                  selected={languages}
+                  onChange={setLanguages}
+                  label="Languages spoken"
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Hourly rate range</label>
