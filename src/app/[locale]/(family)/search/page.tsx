@@ -9,7 +9,7 @@ type Provider = {
   id: string
   display_name: string
   bio: string
-  avatar_url: string
+  avatar_url?: string
   service_types: string[]
   languages: string[]
   hourly_rate_min: number
@@ -86,7 +86,6 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
 
-      {/* Navbar */}
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
         <Link href="/dashboard" className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-900">NiHao Care</span>
@@ -99,7 +98,6 @@ export default function SearchPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-8">
 
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Find a Caregiver</h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -107,7 +105,6 @@ export default function SearchPage() {
           </p>
         </div>
 
-        {/* Filters */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-center">
           <div className="flex gap-2 flex-wrap">
             <button
@@ -116,8 +113,7 @@ export default function SearchPage() {
                 serviceFilter === ''
                   ? 'bg-[#C8372D] text-white border-[#C8372D]'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
-            >
+              }`}>
               All
             </button>
             {Object.entries(SERVICE_LABELS).map(([value, label]) => (
@@ -127,8 +123,7 @@ export default function SearchPage() {
                   serviceFilter === value
                     ? 'bg-[#C8372D] text-white border-[#C8372D]'
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}
-              >
+                }`}>
                 {label}
               </button>
             ))}
@@ -152,7 +147,6 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {/* Results */}
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin w-6 h-6 border-2 border-[#C8372D] border-t-transparent rounded-full"/>
@@ -176,9 +170,14 @@ export default function SearchPage() {
                   className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
 
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {provider.display_name.charAt(0)}
-                    </div>
+                    {provider.avatar_url ? (
+                      <img src={provider.avatar_url} alt={provider.display_name}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"/>
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        {provider.display_name.charAt(0)}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-gray-900">{provider.display_name}</div>
                       <div className="text-sm text-gray-500">

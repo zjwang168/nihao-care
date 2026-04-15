@@ -9,6 +9,7 @@ type Provider = {
   id: string
   display_name: string
   bio: string
+  avatar_url?: string
   service_types: string[]
   languages: string[]
   hourly_rate_min: number
@@ -61,7 +62,6 @@ export default function ProviderProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState('')
 
-  // Reviews
   const [reviews, setReviews] = useState<Review[]>([])
   const [myRating, setMyRating] = useState(5)
   const [myComment, setMyComment] = useState('')
@@ -150,7 +150,6 @@ export default function ProviderProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
-
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-900">NiHao Care</span>
@@ -163,19 +162,19 @@ export default function ProviderProfilePage() {
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 
-        {/* Profile header */}
         <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6">
           <div className="flex items-start gap-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
-              {provider.display_name.charAt(0)}
-            </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {provider.display_name}
-              </h1>
-              <div className="text-gray-500 mb-2">
-                📍 {provider.location_city}, {provider.location_state}
+            {provider.avatar_url ? (
+              <img src={provider.avatar_url} alt={provider.display_name}
+                className="w-20 h-20 rounded-full object-cover border-2 border-gray-100 flex-shrink-0"/>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
+                {provider.display_name.charAt(0)}
               </div>
+            )}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{provider.display_name}</h1>
+              <div className="text-gray-500 mb-2">📍 {provider.location_city}, {provider.location_state}</div>
               {avgRating && (
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-yellow-400">⭐</span>
@@ -216,7 +215,6 @@ export default function ProviderProfilePage() {
           </div>
         </div>
 
-        {/* About */}
         {provider.bio && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
             <h2 className="font-semibold text-gray-900 mb-3">About</h2>
@@ -224,7 +222,6 @@ export default function ProviderProfilePage() {
           </div>
         )}
 
-        {/* Details */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Details</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -286,15 +283,12 @@ export default function ProviderProfilePage() {
                       {new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                     </span>
                   </div>
-                  {review.comment && (
-                    <p className="text-sm text-gray-600">{review.comment}</p>
-                  )}
+                  {review.comment && <p className="text-sm text-gray-600">{review.comment}</p>}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Write a review */}
           {isLoggedIn && !alreadyReviewed && (
             <div className="border-t border-gray-100 pt-4 mt-4">
               <h3 className="font-medium text-gray-900 mb-3">Leave a Review</h3>
@@ -310,13 +304,10 @@ export default function ProviderProfilePage() {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">Your experience</label>
-                    <textarea
-                      value={myComment}
-                      onChange={e => setMyComment(e.target.value)}
+                    <textarea value={myComment} onChange={e => setMyComment(e.target.value)}
                       rows={3}
                       placeholder="Share your experience with this caregiver..."
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 text-sm resize-none"
-                    />
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8372D] text-gray-900 text-sm resize-none"/>
                   </div>
                   <button type="submit" disabled={submitting}
                     className="px-6 py-2.5 bg-[#C8372D] text-white text-sm font-medium rounded-xl hover:bg-[#E85045] transition-colors disabled:opacity-50">

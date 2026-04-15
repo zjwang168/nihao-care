@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -23,11 +23,17 @@ async function lookupZipCode(zip: string): Promise<{ city: string; state: string
 export default function ProviderProfileEditPage() {
   const router = useRouter()
   const supabase = createClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [profileId, setProfileId] = useState('')
+  const [userId, setUserId] = useState('')
+
+  // Avatar
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
@@ -51,6 +57,7 @@ export default function ProviderProfileEditPage() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+      setUserId(user.id)
 
       const { data } = await supabase
         .from('provider_profiles')
@@ -75,11 +82,55 @@ export default function ProviderProfileEditPage() {
         setYearsExp(String(data.years_experience || 0))
         setWorkAuth(data.work_auth || 'citizen')
         setCookingStyles(data.cooking_styles || [])
+        setAvatarUrl(data.avatar_url || '')
       }
       setLoading(false)
     }
     loadProfile()
   }, [])
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !userId) return
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    setAvatarUploading(true)
+
+    const fileExt = file.name.split('.').pop()
+    const filePath = `${userId}/avatar.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true })
+
+    if (uploadError) {
+      console.error(uploadError)
+      setAvatarUploading(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath)
+
+    // Save to provider_profiles
+    await supabase
+      .from('provider_profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', profileId)
+
+    setAvatarUrl(publicUrl)
+    setAvatarUploading(false)
+  }
 
   async function handleZipChange(zip: string) {
     setZipCode(zip)
@@ -171,6 +222,43 @@ export default function ProviderProfileEditPage() {
         )}
 
         <form onSubmit={handleSave} className="space-y-6">
+
+          {/* Avatar */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <h2 className="font-semibold text-gray-900 mb-4">Profile Photo</h2>
+            <div className="flex items-center gap-5">
+              <div className="relative">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-100"/>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C8372D] to-[#E8B84B] flex items-center justify-center text-white font-bold text-2xl">
+                    {displayName.charAt(0) || '?'}
+                  </div>
+                )}
+                {avatarUploading && (
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"/>
+                  </div>
+                )}
+              </div>
+              <div>
+                <button type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 hover:border-gray-300 transition-colors disabled:opacity-50">
+                  {avatarUploading ? 'Uploading...' : avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                <p className="text-xs text-gray-400 mt-1.5">JPG, PNG up to 5MB</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"/>
+              </div>
+            </div>
+          </div>
 
           {/* Basic info */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
